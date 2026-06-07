@@ -9,15 +9,15 @@ import java.awt.*;
 public class MatrixPanel extends JPanel {
 
     private Matrix matrix;
-    private int CELL_SIZE = 60;
+    private int cellSize  = 60;
 
     public MatrixPanel(Matrix matrix) {
         this.matrix = matrix;
         setBackground(Color.BLACK);
-        CELL_SIZE = 500 / Math.max(matrix.getCols(), matrix.getRows());
+        cellSize  = 500 / Math.max(matrix.getCols(), matrix.getRows());
         setPreferredSize(new Dimension(
-                CELL_SIZE * matrix.getCols(),
-                CELL_SIZE * matrix.getRows()
+                cellSize  * matrix.getCols(),
+                cellSize  * matrix.getRows()
         ));
     }
 
@@ -40,8 +40,8 @@ public class MatrixPanel extends JPanel {
         for (int i = 0; i < matrix.getRows(); i++) {
             for (int j = 0; j < matrix.getCols(); j++) {
                 Cell cell = matrix.getCell(i, j);
-                int x = j * CELL_SIZE;
-                int y = i * CELL_SIZE;
+                int x = j * cellSize ;
+                int y = i * cellSize ;
 
                 switch (cell) {
                     case NEO       -> g2.setColor(new Color(0, 100, 255));
@@ -50,10 +50,10 @@ public class MatrixPanel extends JPanel {
                     case WALL -> g2.setColor(new Color(180, 80, 0));
                     case EMPTY     -> g2.setColor(new Color(15, 15, 15));
                 }
-                g2.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+                g2.fillRect(x + 2, y + 2, cellSize  - 4, cellSize  - 4);
 
                 g2.setColor(new Color(0, 50, 0));
-                g2.drawRect(x, y, CELL_SIZE, CELL_SIZE);
+                g2.drawRect(x, y, cellSize , cellSize );
             }
         }
         g2.dispose();

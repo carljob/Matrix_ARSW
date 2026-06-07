@@ -80,6 +80,6 @@ public class Agent extends Thread {
             matrix.setCell(row, col, Cell.AGENT);
         }
 
-        notifyObservers(new SimulationEvent(SimulationEvent.Type.NEO_MOVED, row, col));
+        notifyObservers(new SimulationEvent(SimulationEvent.Type.AGENT_MOVED, row, col));
     }
 }

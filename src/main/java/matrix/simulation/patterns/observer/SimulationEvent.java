@@ -4,6 +4,7 @@ public class SimulationEvent {
 
     public enum Type {
         NEO_MOVED,
+        AGENT_MOVED,
         NEO_ESCAPED,
         NEO_CAUGHT
     }
@@ -17,7 +18,6 @@ public class SimulationEvent {
         this.row = row;
         this.col = col;
     }
-
 
     @Override
     public String toString() {
