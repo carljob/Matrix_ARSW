@@ -19,14 +19,14 @@ public class NeoRandomMovement implements MovementStrategy {
     public int[] move(int row, int col, Matrix matrix) {
         List<int[]> available = new ArrayList<>();
 
-        for (int[] dir : DIRS) {
-            int nr = row + dir[0];
-            int nc = col + dir[1];
-            if (!isValid(nr, nc, matrix)) continue;
+         for (int[] dir : DIRS) {
+             int nr = row + dir[0];
+             int nc = col + dir[1];
+             if (!isValid(nr, nc, matrix)) continue;
 
-            Cell cell = matrix.getCell(nr, nc);
-            if (cell == Cell.TELEPHONE) return null; // llegó al teléfono
-            if (cell == Cell.EMPTY)     available.add(new int[]{nr, nc});
+             Cell cell = matrix.getCell(nr, nc);
+             if (cell == Cell.TELEPHONE) return null;
+             if (cell == Cell.EMPTY)     available.add(new int[]{nr, nc});
         }
 
         if (available.isEmpty()) return new int[]{row, col};

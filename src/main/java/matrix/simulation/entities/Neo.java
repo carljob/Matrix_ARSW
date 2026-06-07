@@ -3,8 +3,8 @@ package matrix.simulation.entities;
 import matrix.simulation.GameState;
 import matrix.simulation.model.Cell;
 import matrix.simulation.model.Matrix;
-import matrix.simulation.patterns.observer.SimulationObserver;
 import matrix.simulation.patterns.observer.SimulationEvent;
+import matrix.simulation.patterns.observer.SimulationObserver;
 import matrix.simulation.patterns.strategy.MovementStrategy;
 import matrix.simulation.patterns.strategy.NeoSmartMovement;
 
@@ -22,7 +22,6 @@ public class Neo extends Thread {
     public volatile boolean escaped = false;
 
     private MovementStrategy movementStrategy;
-
     private final List<SimulationObserver> observers = new ArrayList<>();
 
     public Neo(int row, int col, Matrix matrix, int speed) {
@@ -67,7 +66,6 @@ public class Neo extends Thread {
         if (result == null) {
             escaped = true;
             matrix.setCell(row, col, Cell.EMPTY);
-            System.out.println("Neo escaped!");
             notifyObservers(new SimulationEvent(SimulationEvent.Type.NEO_ESCAPED, row, col));
             return;
         }
@@ -78,6 +76,8 @@ public class Neo extends Thread {
             col = result[1];
             matrix.setCell(row, col, Cell.NEO);
         }
+
+        notifyObservers(new SimulationEvent(SimulationEvent.Type.SIMULATION_STARTED, row, col));
     }
 
     public int getRow() { return row; }

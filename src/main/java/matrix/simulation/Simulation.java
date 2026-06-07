@@ -6,7 +6,6 @@ import matrix.simulation.model.Cell;
 import matrix.simulation.model.Matrix;
 import matrix.simulation.patterns.factory.EntityFactory;
 import matrix.simulation.patterns.observer.SimulationEvent;
-import matrix.simulation.patterns.singleton.MatrixInstance;
 import matrix.simulation.ui.MenuFrame;
 import matrix.simulation.ui.SimulationFrame;
 
@@ -69,8 +68,6 @@ public class Simulation {
         int[] neoPos = randomEmpty(matrix);
         Neo neo = EntityFactory.createNeo(neoPos[0], neoPos[1], matrix, neoSpeed, difficulty);
 
-        neo.addObserver(event -> System.out.println("[Observer] " + event));
-
         List<Agent> agents = new ArrayList<>();
         for (int i = 0; i < numAgents; i++) {
             int[] agentPos = randomEmpty(matrix);
@@ -84,7 +81,13 @@ public class Simulation {
         } else {
             frame.update(matrix);
             frame.setPaused(false);
-        }
+         }
+
+         final SimulationFrame currentFrame = frame;
+        neo.addObserver(event -> {
+            System.out.println("[Observer] " + event);
+            currentFrame.repaintPanel();
+        });
 
         neo.start();
         for (Agent agent : agents) agent.start();
@@ -104,13 +107,13 @@ public class Simulation {
 
         if (neo.escaped) {
             neoWins++;
-            System.out.println("✅ NEO ESCAPED!");
+            System.out.println("NEO ESCAPED!");
         } else {
             neoLosses++;
-            System.out.println("❌ NEO WAS CAUGHT!");
+            System.out.println("NEO WAS CAUGHT!");
         }
 
-        String result = neo.escaped ? "✅ Neo escaped!" : "❌ Neo was caught!";
+        String result = neo.escaped ? "Neo escaped!" : "Neo was caught!";
 
         final int[] choice = {0};
         try {
@@ -151,14 +154,14 @@ public class Simulation {
 
     private void showSummary() {
         String overall;
-        if (neoWins > neoLosses)       overall = "🕶️ Neo wins overall!";
-        else if (neoLosses > neoWins)  overall = "🕵️ Agents win overall!";
-        else                            overall = "🤝 It's a tie!";
+        if (neoWins > neoLosses)       overall = "Neo wins overall!";
+        else if (neoLosses > neoWins)  overall = "Agents win overall!";
+        else                            overall = "It's a tie!";
 
         String summary =
-                "🎮 ALL SIMULATIONS COMPLETED!\n\n" +
-                        "✅ Neo escaped:    " + neoWins   + " time(s)\n" +
-                        "❌ Neo was caught: " + neoLosses + " time(s)\n\n" +
+                "ALL SIMULATIONS COMPLETED!\n\n" +
+                        "Neo escaped:    " + neoWins   + " time(s)\n" +
+                        "Neo was caught: " + neoLosses + " time(s)\n\n" +
                         overall;
 
         final int[] choice = {0};

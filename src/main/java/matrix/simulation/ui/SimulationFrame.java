@@ -52,6 +52,10 @@ public class SimulationFrame extends JFrame {
         setVisible(true);
     }
 
+    public void repaintPanel() {
+        SwingUtilities.invokeLater(matrixPanel::repaint);
+    }
+
     private void togglePause() {
         paused = !paused;
         if (paused) {
@@ -80,10 +84,7 @@ public class SimulationFrame extends JFrame {
             } else if (opt == 1) {
                 GameState.resume();
                 dispose();
-                SwingUtilities.invokeLater(() ->
-                        new matrix.simulation.ui.MenuFrame()
-                );
-                System.exit(0);
+                SwingUtilities.invokeLater(MenuFrame::new);
             } else {
                 System.exit(0);
             }

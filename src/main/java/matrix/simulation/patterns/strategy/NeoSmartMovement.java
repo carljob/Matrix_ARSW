@@ -12,18 +12,19 @@ public class NeoSmartMovement implements MovementStrategy {
 
     @Override
     public int[] move(int row, int col, Matrix matrix) {
-        int bestRow = row, bestCol = col;
-        double bestDist = Double.MAX_VALUE;
+         double currentDist = distToNearestPhone(row, col, matrix);
+         int bestRow = -1, bestCol = -1;
+         double bestDist = currentDist;
 
-        for (int[] dir : DIRS) {
+         for (int[] dir : DIRS) {
             int nr = row + dir[0];
             int nc = col + dir[1];
             if (!isValid(nr, nc, matrix)) continue;
 
-            Cell cell = matrix.getCell(nr, nc);
-            if (cell == Cell.TELEPHONE) {
-                return null; // llegó al teléfono
-            }
+             Cell cell = matrix.getCell(nr, nc);
+             if (cell == Cell.TELEPHONE) {
+                 return null;
+             }
             if (cell == Cell.EMPTY) {
                 double dist = distToNearestPhone(nr, nc, matrix);
                 if (dist < bestDist) {
@@ -31,8 +32,10 @@ public class NeoSmartMovement implements MovementStrategy {
                     bestRow = nr;
                     bestCol = nc;
                 }
-            }
-        }
+             }
+         }
+
+         if (bestRow == -1) return new int[]{row, col};
         return new int[]{bestRow, bestCol};
     }
 
