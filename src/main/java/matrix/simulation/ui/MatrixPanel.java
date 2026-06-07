@@ -9,14 +9,16 @@ import java.awt.*;
 public class MatrixPanel extends JPanel {
 
     private Matrix matrix;
-    private static final int CELL_SIZE = 60;
+    private int CELL_SIZE = 60;
+    private static final int PANEL_SIZE = 500;
 
     public MatrixPanel(Matrix matrix) {
         this.matrix = matrix;
-        setBackground(Color.WHITE);
+        setBackground(Color.BLACK);
+        CELL_SIZE = 500 / Math.max(matrix.getCols(), matrix.getRows());
         setPreferredSize(new Dimension(
-                matrix.getCols() * CELL_SIZE,
-                matrix.getRows() * CELL_SIZE
+                CELL_SIZE * matrix.getCols(),
+                CELL_SIZE * matrix.getRows()
         ));
     }
 
@@ -46,12 +48,12 @@ public class MatrixPanel extends JPanel {
                     case NEO       -> g2.setColor(new Color(0, 100, 255));
                     case AGENT     -> g2.setColor(new Color(220, 0, 0));
                     case TELEPHONE -> g2.setColor(new Color(0, 200, 0));
-                    case WALL      -> g2.setColor(new Color(40, 40, 40));
-                    case EMPTY     -> g2.setColor(Color.WHITE);
+                    case WALL -> g2.setColor(new Color(180, 80, 0));
+                    case EMPTY     -> g2.setColor(new Color(15, 15, 15));
                 }
                 g2.fillRect(x + 2, y + 2, CELL_SIZE - 4, CELL_SIZE - 4);
 
-                g2.setColor(new Color(200, 200, 200));
+                g2.setColor(new Color(0, 50, 0));
                 g2.drawRect(x, y, CELL_SIZE, CELL_SIZE);
             }
         }
