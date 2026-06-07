@@ -3,9 +3,9 @@ package matrix.simulation.patterns.observer;
 public class SimulationEvent {
 
     public enum Type {
+        NEO_MOVED,
         NEO_ESCAPED,
         NEO_CAUGHT,
-        SIMULATION_STARTED,
         SIMULATION_ENDED
     }
 

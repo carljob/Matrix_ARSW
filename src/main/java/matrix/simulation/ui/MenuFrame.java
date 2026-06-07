@@ -1,5 +1,6 @@
 package matrix.simulation.ui;
 
+import matrix.simulation.DifficultyConfig;
 import matrix.simulation.Simulation;
 
 import javax.swing.*;
@@ -71,7 +72,7 @@ public class MenuFrame extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
 
-        int WIDTH = 500;
+        int WIDTH  = 500;
         int HEIGHT = 500;
 
         JLayeredPane layered = new JLayeredPane();
@@ -122,50 +123,25 @@ public class MenuFrame extends JFrame {
 
         playButton.addActionListener(e -> {
             int[] boardSize = switch (sizeBox.getSelectedIndex()) {
-                case 0 -> new int[]{12, 12};
-                case 2 -> new int[]{64, 64};
+                case 0  -> new int[]{12, 12};
+                case 2  -> new int[]{64, 64};
                 default -> new int[]{30, 30};
             };
 
-            int size = boardSize[0];
-
-            int[] diff = switch (diffBox.getSelectedIndex()) {
-                case 0 -> new int[]{
-                        size <= 12 ? 1 : size <= 30 ? 2 : 4,
-                        size <= 12 ? 3 : size <= 30 ? 8 : 20,
-                        size <= 12 ? 4 : size <= 30 ? 8 : 15
-                };
-                case 2 -> new int[]{
-                        size <= 12 ? 4 : size <= 30 ? 10 : 25,
-                        size <= 12 ? 6 : size <= 30 ? 15 : 40,
-                        size <= 12 ? 1 : size <= 30 ? 2 : 3
-                };
-                default -> new int[]{
-                        size <= 12 ? 2 : size <= 30 ? 5 : 12,
-                        size <= 12 ? 4 : size <= 30 ? 10 : 28,
-                        size <= 12 ? 2 : size <= 30 ? 4 : 8
-                };
+            DifficultyConfig.Level level = switch (diffBox.getSelectedIndex()) {
+                case 0  -> DifficultyConfig.Level.EASY;
+                case 2  -> DifficultyConfig.Level.HARD;
+                default -> DifficultyConfig.Level.MEDIUM;
             };
 
-            int neoSpeed = switch (diffBox.getSelectedIndex()) {
-                case 0 -> 300;
-                case 2 -> 500;
-                default -> 400;
-            };
-
-            int agentSpeed = switch (diffBox.getSelectedIndex()) {
-                case 0 -> 600;
-                case 2 -> 300;
-                default -> 450;
-            };
-
+            DifficultyConfig config = DifficultyConfig.of(level, boardSize[0]);
             int numSims = (int) simSpinner.getValue();
             dispose();
 
             Simulation sim = new Simulation(
                     boardSize[0], boardSize[1],
-                    diff[0], diff[1], diff[2],
-                    neoSpeed, agentSpeed
+                    config.numAgents, config.numWalls, config.numTelephones,
+                    config.neoSpeed, config.agentSpeed
             );
             new Thread(() -> sim.run(numSims, 1)).start();
         });

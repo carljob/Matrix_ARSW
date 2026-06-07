@@ -18,7 +18,7 @@ public class Neo extends Thread {
     private final Matrix matrix;
     private final int speed;
 
-    public volatile boolean alive = true;
+    public volatile boolean alive   = true;
     public volatile boolean escaped = false;
 
     private MovementStrategy movementStrategy;
@@ -77,7 +77,7 @@ public class Neo extends Thread {
             matrix.setCell(row, col, Cell.NEO);
         }
 
-        notifyObservers(new SimulationEvent(SimulationEvent.Type.SIMULATION_STARTED, row, col));
+        notifyObservers(new SimulationEvent(SimulationEvent.Type.NEO_MOVED, row, col));
     }
 
     public int getRow() { return row; }

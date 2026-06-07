@@ -5,7 +5,6 @@ import matrix.simulation.entities.Neo;
 import matrix.simulation.model.Cell;
 import matrix.simulation.model.Matrix;
 import matrix.simulation.patterns.factory.EntityFactory;
-import matrix.simulation.patterns.observer.SimulationEvent;
 import matrix.simulation.ui.MenuFrame;
 import matrix.simulation.ui.SimulationFrame;
 
@@ -36,91 +35,91 @@ public class Simulation {
     public Simulation(int rows, int cols, int numAgents,
                       int numWalls, int numTelephones,
                       int neoSpeed, int agentSpeed) {
-        this.random = new Random();
-        this.neoWins = 0;
-        this.neoLosses = 0;
-        this.rows = rows;
-        this.cols = cols;
-        this.numAgents = numAgents;
-        this.numWalls = numWalls;
+        this.random        = new Random();
+        this.neoWins       = 0;
+        this.neoLosses     = 0;
+        this.rows          = rows;
+        this.cols          = cols;
+        this.numAgents     = numAgents;
+        this.numWalls      = numWalls;
         this.numTelephones = numTelephones;
-        this.neoSpeed = neoSpeed;
-        this.agentSpeed = agentSpeed;
+        this.neoSpeed      = neoSpeed;
+        this.agentSpeed    = agentSpeed;
     }
 
     public void run(int totalSimulations, int currentSimulation) {
-        if (currentSimulation > totalSimulations) {
-            showSummary();
-            return;
-        }
+        for (int i = currentSimulation; i <= totalSimulations; i++) {
+            System.out.println("\n=== SIMULATION " + i + " ===\n");
 
-        System.out.println("\n=== SIMULATION " + currentSimulation + " ===\n");
+            GameState.resume();
 
-        GameState.resume();
+            Matrix matrix = new Matrix(rows, cols);
+            place(matrix, Cell.WALL, numWalls);
+            place(matrix, Cell.TELEPHONE, numTelephones);
 
-        Matrix matrix = new Matrix(rows, cols);
+            EntityFactory.Difficulty difficulty = getDifficulty();
 
-        place(matrix, Cell.WALL, numWalls);
-        place(matrix, Cell.TELEPHONE, numTelephones);
+            int[] neoPos = randomEmpty(matrix);
+            Neo neo = EntityFactory.createNeo(
+                    neoPos[0], neoPos[1], matrix, neoSpeed, difficulty);
 
-        EntityFactory.Difficulty difficulty = getDifficulty();
+            List<Agent> agents = new ArrayList<>();
+            for (int a = 0; a < numAgents; a++) {
+                int[] pos = randomEmpty(matrix);
+                agents.add(EntityFactory.createAgent(
+                        pos[0], pos[1], matrix, neo, agentSpeed, difficulty));
+            }
 
-        int[] neoPos = randomEmpty(matrix);
-        Neo neo = EntityFactory.createNeo(neoPos[0], neoPos[1], matrix, neoSpeed, difficulty);
+            if (frame == null) {
+                frame = new SimulationFrame(matrix, this);
+            } else {
+                frame.update(matrix);
+                frame.setPaused(false);
+            }
 
-        List<Agent> agents = new ArrayList<>();
-        for (int i = 0; i < numAgents; i++) {
-            int[] agentPos = randomEmpty(matrix);
-            agents.add(EntityFactory.createAgent(
-                    agentPos[0], agentPos[1], matrix, neo, agentSpeed, difficulty
-            ));
-        }
+            final SimulationFrame currentFrame = frame;
 
-        if (frame == null) {
-            frame = new SimulationFrame(matrix, this);
-        } else {
+            neo.addObserver(event -> {
+                System.out.println("[Observer] " + event);
+                currentFrame.repaintPanel();
+            });
+
+            for (Agent agent : agents) {
+                agent.addObserver(event -> currentFrame.repaintPanel());
+            }
+
+            neo.start();
+            for (Agent agent : agents) agent.start();
+
+            try {
+                neo.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            for (Agent agent : agents) {
+                agent.active = false;
+                agent.interrupt();
+            }
+
             frame.update(matrix);
-            frame.setPaused(false);
-         }
 
-         final SimulationFrame currentFrame = frame;
-        neo.addObserver(event -> {
-            System.out.println("[Observer] " + event);
-            currentFrame.repaintPanel();
-        });
+            if (neo.escaped) {
+                neoWins++;
+                System.out.println("NEO ESCAPED!");
+            } else {
+                neoLosses++;
+                System.out.println("NEO WAS CAUGHT!");
+            }
 
-        neo.start();
-        for (Agent agent : agents) agent.start();
+            String result = neo.escaped ? "Neo escaped!" : "Neo was caught!";
+            final int[] choice = {0};
+            final int simNum = i;
 
-        try {
-            neo.join();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        for (Agent agent : agents) {
-            agent.active = false;
-            agent.interrupt();
-        }
-
-        frame.update(matrix);
-
-        if (neo.escaped) {
-            neoWins++;
-            System.out.println("NEO ESCAPED!");
-        } else {
-            neoLosses++;
-            System.out.println("NEO WAS CAUGHT!");
-        }
-
-        String result = neo.escaped ? "Neo escaped!" : "Neo was caught!";
-
-        final int[] choice = {0};
-        try {
-            SwingUtilities.invokeAndWait(() ->
+            Runnable showDialog = () ->
                     choice[0] = JOptionPane.showOptionDialog(
                             frame,
-                            result + "\n\nSimulation " + currentSimulation
+                            result + "\n\nSimulation " + simNum
                                     + " of " + totalSimulations,
                             "Simulation ended",
                             JOptionPane.DEFAULT_OPTION,
@@ -129,21 +128,28 @@ public class Simulation {
                             null,
                             new String[]{"Next Simulation", "Quit to Menu", "Exit"},
                             "Next Simulation"
-                    )
-            );
-        } catch (Exception e) {
-            Thread.currentThread().interrupt();
+                    );
+
+            if (SwingUtilities.isEventDispatchThread()) {
+                showDialog.run();
+            } else {
+                try {
+                    SwingUtilities.invokeAndWait(showDialog);
+                } catch (Exception e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+
+            if (choice[0] == 1) {
+                if (frame != null) frame.dispose();
+                SwingUtilities.invokeLater(MenuFrame::new);
+                return;
+            } else if (choice[0] == 2) {
+                System.exit(0);
+            }
         }
 
-        if (choice[0] == 1) {
-            if (frame != null) frame.dispose();
-            SwingUtilities.invokeLater(MenuFrame::new);
-            return;
-        } else if (choice[0] == 2) {
-            System.exit(0);
-        }
-
-        run(totalSimulations, currentSimulation + 1);
+        showSummary();
     }
 
     private EntityFactory.Difficulty getDifficulty() {
@@ -154,9 +160,9 @@ public class Simulation {
 
     private void showSummary() {
         String overall;
-        if (neoWins > neoLosses)       overall = "Neo wins overall!";
-        else if (neoLosses > neoWins)  overall = "Agents win overall!";
-        else                            overall = "It's a tie!";
+        if (neoWins > neoLosses)      overall = "Neo wins overall!";
+        else if (neoLosses > neoWins) overall = "Agents win overall!";
+        else                          overall = "It's a tie!";
 
         String summary =
                 "ALL SIMULATIONS COMPLETED!\n\n" +
@@ -165,28 +171,30 @@ public class Simulation {
                         overall;
 
         final int[] choice = {0};
-        try {
-            SwingUtilities.invokeAndWait(() ->
-                    choice[0] = JOptionPane.showOptionDialog(
-                            frame, summary, "Game Summary",
-                            JOptionPane.DEFAULT_OPTION,
-                            JOptionPane.INFORMATION_MESSAGE,
-                            null,
-                            new String[]{"Back to Menu", "Exit"},
-                            "Back to Menu"
-                    )
-            );
-        } catch (Exception e) {
-            Thread.currentThread().interrupt();
+
+        Runnable showSummaryDialog = () ->
+                choice[0] = JOptionPane.showOptionDialog(
+                        frame, summary, "Game Summary",
+                        JOptionPane.DEFAULT_OPTION,
+                        JOptionPane.INFORMATION_MESSAGE,
+                        null,
+                        new String[]{"Back to Menu", "Exit"},
+                        "Back to Menu"
+                );
+
+        if (SwingUtilities.isEventDispatchThread()) {
+            showSummaryDialog.run();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(showSummaryDialog);
+            } catch (Exception e) {
+                Thread.currentThread().interrupt();
+            }
         }
 
         if (frame != null) frame.dispose();
         if (choice[0] == 0) SwingUtilities.invokeLater(MenuFrame::new);
         else System.exit(0);
-    }
-
-    public void pauseSimulation() {
-        if (frame != null) frame.setPaused(true);
     }
 
     private void place(Matrix matrix, Cell cell, int count) {

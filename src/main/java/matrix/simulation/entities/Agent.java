@@ -3,8 +3,13 @@ package matrix.simulation.entities;
 import matrix.simulation.GameState;
 import matrix.simulation.model.Cell;
 import matrix.simulation.model.Matrix;
+import matrix.simulation.patterns.observer.SimulationEvent;
+import matrix.simulation.patterns.observer.SimulationObserver;
 import matrix.simulation.patterns.strategy.AgentSmartMovement;
 import matrix.simulation.patterns.strategy.MovementStrategy;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Agent extends Thread {
 
@@ -17,6 +22,7 @@ public class Agent extends Thread {
     public volatile boolean active = true;
 
     private MovementStrategy movementStrategy;
+    private final List<SimulationObserver> observers = new ArrayList<>();
 
     public Agent(int row, int col, Matrix matrix, Neo neo, int speed) {
         this.row = row;
@@ -29,6 +35,16 @@ public class Agent extends Thread {
 
     public void setMovementStrategy(MovementStrategy strategy) {
         this.movementStrategy = strategy;
+    }
+
+    public void addObserver(SimulationObserver observer) {
+        observers.add(observer);
+    }
+
+    private void notifyObservers(SimulationEvent event) {
+        for (SimulationObserver obs : observers) {
+            obs.onEvent(event);
+        }
     }
 
     @Override
@@ -52,6 +68,7 @@ public class Agent extends Thread {
             neo.alive = false;
             matrix.setCell(row, col, Cell.EMPTY);
             System.out.println("Agent caught Neo!");
+            notifyObservers(new SimulationEvent(SimulationEvent.Type.NEO_CAUGHT, row, col));
             active = false;
             return;
         }
@@ -62,5 +79,7 @@ public class Agent extends Thread {
             col = result[1];
             matrix.setCell(row, col, Cell.AGENT);
         }
+
+        notifyObservers(new SimulationEvent(SimulationEvent.Type.NEO_MOVED, row, col));
     }
 }
