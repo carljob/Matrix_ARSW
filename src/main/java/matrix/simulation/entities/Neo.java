@@ -6,7 +6,7 @@ import matrix.simulation.model.Matrix;
 import matrix.simulation.patterns.observer.SimulationObserver;
 import matrix.simulation.patterns.observer.SimulationEvent;
 import matrix.simulation.patterns.strategy.MovementStrategy;
-import matrix.simulation.patterns.strategy.SmartMovement;
+import matrix.simulation.patterns.strategy.NeoSmartMovement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class Neo extends Thread {
         this.col = col;
         this.matrix = matrix;
         this.speed = speed;
-        this.movementStrategy = new SmartMovement();
+        this.movementStrategy = new NeoSmartMovement();
     }
 
     public void setMovementStrategy(MovementStrategy strategy) {
@@ -62,7 +62,7 @@ public class Neo extends Thread {
     }
 
     private void move() {
-        int[] result = movementStrategy.move(row, col, matrix, null);
+        int[] result = movementStrategy.move(row, col, matrix);
 
         if (result == null) {
             escaped = true;

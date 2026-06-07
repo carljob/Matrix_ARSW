@@ -59,8 +59,7 @@ public class Simulation {
 
         GameState.resume();
 
-        MatrixInstance.reset();
-        Matrix matrix = MatrixInstance.getInstance(rows, cols).getMatrix();
+        Matrix matrix = new Matrix(rows, cols);
 
         place(matrix, Cell.WALL, numWalls);
         place(matrix, Cell.TELEPHONE, numTelephones);

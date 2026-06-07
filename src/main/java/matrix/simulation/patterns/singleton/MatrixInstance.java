@@ -5,7 +5,6 @@ import matrix.simulation.model.Matrix;
 public class MatrixInstance {
 
     private static volatile MatrixInstance instance = null;
-
     private Matrix matrix;
 
     private MatrixInstance(int rows, int cols) {
@@ -21,10 +20,6 @@ public class MatrixInstance {
             }
         }
         return instance;
-    }
-
-    public static synchronized void reset() {
-        instance = null;
     }
 
     public Matrix getMatrix() { return matrix; }

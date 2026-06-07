@@ -4,9 +4,7 @@ import matrix.simulation.entities.Agent;
 import matrix.simulation.entities.Neo;
 import matrix.simulation.model.Cell;
 import matrix.simulation.model.Matrix;
-import matrix.simulation.patterns.strategy.MovementStrategy;
-import matrix.simulation.patterns.strategy.RandomMovement;
-import matrix.simulation.patterns.strategy.SmartMovement;
+import matrix.simulation.patterns.strategy.*;
 
 public class EntityFactory {
 
@@ -18,8 +16,8 @@ public class EntityFactory {
         Neo neo = new Neo(row, col, matrix, speed);
 
         MovementStrategy strategy = (difficulty == Difficulty.EASY)
-                ? new RandomMovement()
-                : new SmartMovement();
+                ? new NeoRandomMovement()
+                : new NeoSmartMovement();
 
         neo.setMovementStrategy(strategy);
         return neo;
@@ -31,8 +29,8 @@ public class EntityFactory {
         Agent agent = new Agent(row, col, matrix, neo, speed);
 
         MovementStrategy strategy = (difficulty == Difficulty.EASY)
-                ? new RandomMovement()
-                : new SmartMovement();
+                ? new AgentRandomMovement(neo)
+                : new AgentSmartMovement(neo);
 
         agent.setMovementStrategy(strategy);
         return agent;

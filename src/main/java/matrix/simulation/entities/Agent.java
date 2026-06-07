@@ -3,8 +3,8 @@ package matrix.simulation.entities;
 import matrix.simulation.GameState;
 import matrix.simulation.model.Cell;
 import matrix.simulation.model.Matrix;
+import matrix.simulation.patterns.strategy.AgentSmartMovement;
 import matrix.simulation.patterns.strategy.MovementStrategy;
-import matrix.simulation.patterns.strategy.SmartMovement;
 
 public class Agent extends Thread {
 
@@ -24,7 +24,7 @@ public class Agent extends Thread {
         this.matrix = matrix;
         this.neo = neo;
         this.speed = speed;
-        this.movementStrategy = new SmartMovement();
+        this.movementStrategy = new AgentSmartMovement(neo);
     }
 
     public void setMovementStrategy(MovementStrategy strategy) {
@@ -46,7 +46,7 @@ public class Agent extends Thread {
     }
 
     private void move() {
-        int[] result = movementStrategy.move(row, col, matrix, neo);
+        int[] result = movementStrategy.move(row, col, matrix);
 
         if (result == null) {
             neo.alive = false;
