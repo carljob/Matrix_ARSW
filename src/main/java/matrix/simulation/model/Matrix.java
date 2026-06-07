@@ -1,11 +1,11 @@
 package matrix.simulation.model;
 
 public class Matrix {
-    private int rows;
-    private int cols;
-    private Cell[][] grid;
+    private final int rows;
+    private final int cols;
+    private final Cell[][] grid;
 
-    public Matrix(int rows, int cols){
+    public Matrix(int rows, int cols) {
         this.rows = rows;
         this.cols = cols;
         this.grid = new Cell[rows][cols];
@@ -13,30 +13,23 @@ public class Matrix {
     }
 
     private void initializeGrid() {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++){
+        for (int i = 0; i < rows; i++)
+            for (int j = 0; j < cols; j++)
                 grid[i][j] = Cell.EMPTY;
-            }
-        }
     }
 
-    public Cell getCell(int row, int col){
+    public synchronized Cell getCell(int row, int col) {
         return grid[row][col];
     }
 
-    public void setCell(int row, int col, Cell value){
+    public synchronized void setCell(int row, int col, Cell value) {
         grid[row][col] = value;
     }
 
-    public int getRows() {
-        return rows;
-    }
+    public int getRows() { return rows; }
+    public int getCols() { return cols; }
 
-    public int getCols() {
-        return cols;
-    }
-
-    public void print() {
+    public synchronized void print() {
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 switch (grid[i][j]) {
@@ -51,7 +44,4 @@ public class Matrix {
         }
         System.out.println();
     }
-
 }
-
-

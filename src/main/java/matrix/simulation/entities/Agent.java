@@ -3,15 +3,20 @@ package matrix.simulation.entities;
 import matrix.simulation.GameState;
 import matrix.simulation.model.Cell;
 import matrix.simulation.model.Matrix;
+import matrix.simulation.patterns.strategy.MovementStrategy;
+import matrix.simulation.patterns.strategy.SmartMovement;
 
 public class Agent extends Thread {
 
     private int row;
     private int col;
-    private Matrix matrix;
-    private Neo neo;
-    public boolean active = true;
-    private int speed;
+    private final Matrix matrix;
+    private final Neo neo;
+    private final int speed;
+
+    public volatile boolean active = true;
+
+    private MovementStrategy movementStrategy;
 
     public Agent(int row, int col, Matrix matrix, Neo neo, int speed) {
         this.row = row;
@@ -19,6 +24,11 @@ public class Agent extends Thread {
         this.matrix = matrix;
         this.neo = neo;
         this.speed = speed;
+        this.movementStrategy = new SmartMovement();
+    }
+
+    public void setMovementStrategy(MovementStrategy strategy) {
+        this.movementStrategy = strategy;
     }
 
     @Override
@@ -26,65 +36,31 @@ public class Agent extends Thread {
         while (active && neo.alive && !neo.escaped) {
             try {
                 Thread.sleep(speed);
-                while (GameState.isPaused()) {
-                    Thread.sleep(50);
-                }
+                GameState.waitIfPaused();
                 move();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                break;
             }
         }
     }
 
     private void move() {
-        int[][] dirs = {
-                {-1,0},{1,0},{0,-1},{0,1},
-                {-1,-1},{-1,1},{1,-1},{1,1}
-        };
+        int[] result = movementStrategy.move(row, col, matrix, neo);
 
-        int bestRow = -1;
-        int bestCol = -1;
-        double bestDist = Double.MAX_VALUE;
-
-        for (int[] dir : dirs) {
-            int nr = row + dir[0];
-            int nc = col + dir[1];
-
-            if (isValid(nr, nc)) {
-                if (matrix.getCell(nr, nc) == Cell.NEO) {
-                    neo.alive = false;
-                    matrix.setCell(row, col, Cell.EMPTY);
-                    System.out.println("Agent caught Neo!");
-                    active = false;
-                    return;
-                }
-                if (matrix.getCell(nr, nc) == Cell.EMPTY) {
-                    double dist = Math.sqrt(
-                            Math.pow(nr - neo.getRow(), 2) +
-                                    Math.pow(nc - neo.getCol(), 2)
-                    );
-                    if (dist < bestDist) {
-                        bestDist = dist;
-                        bestRow = nr;
-                        bestCol = nc;
-                    }
-                }
-            }
+        if (result == null) {
+            neo.alive = false;
+            matrix.setCell(row, col, Cell.EMPTY);
+            System.out.println("Agent caught Neo!");
+            active = false;
+            return;
         }
 
-        if (bestRow != -1) {
+        if (result[0] != row || result[1] != col) {
             matrix.setCell(row, col, Cell.EMPTY);
-            row = bestRow;
-            col = bestCol;
+            row = result[0];
+            col = result[1];
             matrix.setCell(row, col, Cell.AGENT);
         }
-    }
-
-    private boolean isValid(int r, int c) {
-        return r >= 0 && r < matrix.getRows()
-                && c >= 0 && c < matrix.getCols()
-                && matrix.getCell(r, c) != Cell.WALL
-                && matrix.getCell(r, c) != Cell.TELEPHONE
-                && matrix.getCell(r, c) != Cell.AGENT;
     }
 }

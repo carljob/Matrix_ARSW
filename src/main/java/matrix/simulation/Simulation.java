@@ -4,6 +4,9 @@ import matrix.simulation.entities.Agent;
 import matrix.simulation.entities.Neo;
 import matrix.simulation.model.Cell;
 import matrix.simulation.model.Matrix;
+import matrix.simulation.patterns.factory.EntityFactory;
+import matrix.simulation.patterns.observer.SimulationEvent;
+import matrix.simulation.patterns.singleton.MatrixInstance;
 import matrix.simulation.ui.MenuFrame;
 import matrix.simulation.ui.SimulationFrame;
 
@@ -14,17 +17,17 @@ import java.util.Random;
 
 public class Simulation {
 
-    private int rows;
-    private int cols;
-    private int numAgents;
-    private int numWalls;
-    private int numTelephones;
-    private Random random;
+    private final int rows;
+    private final int cols;
+    private final int numAgents;
+    private final int numWalls;
+    private final int numTelephones;
+    private final Random random;
     private SimulationFrame frame;
     private int neoWins;
     private int neoLosses;
-    private int neoSpeed;
-    private int agentSpeed;
+    private final int neoSpeed;
+    private final int agentSpeed;
 
     public Simulation(int rows, int cols, int numAgents,
                       int numWalls, int numTelephones) {
@@ -54,22 +57,27 @@ public class Simulation {
 
         System.out.println("\n=== SIMULATION " + currentSimulation + " ===\n");
 
-        // Resetear GameState por si acaso
         GameState.resume();
 
-        Matrix matrix = new Matrix(rows, cols);
+        MatrixInstance.reset();
+        Matrix matrix = MatrixInstance.getInstance(rows, cols).getMatrix();
+
         place(matrix, Cell.WALL, numWalls);
         place(matrix, Cell.TELEPHONE, numTelephones);
 
+        EntityFactory.Difficulty difficulty = getDifficulty();
+
         int[] neoPos = randomEmpty(matrix);
-        matrix.setCell(neoPos[0], neoPos[1], Cell.NEO);
-        Neo neo = new Neo(neoPos[0], neoPos[1], matrix, neoSpeed);
+        Neo neo = EntityFactory.createNeo(neoPos[0], neoPos[1], matrix, neoSpeed, difficulty);
+
+        neo.addObserver(event -> System.out.println("[Observer] " + event));
 
         List<Agent> agents = new ArrayList<>();
         for (int i = 0; i < numAgents; i++) {
             int[] agentPos = randomEmpty(matrix);
-            matrix.setCell(agentPos[0], agentPos[1], Cell.AGENT);
-            agents.add(new Agent(agentPos[0], agentPos[1], matrix, neo, agentSpeed));
+            agents.add(EntityFactory.createAgent(
+                    agentPos[0], agentPos[1], matrix, neo, agentSpeed, difficulty
+            ));
         }
 
         if (frame == null) {
@@ -82,20 +90,19 @@ public class Simulation {
         neo.start();
         for (Agent agent : agents) agent.start();
 
-        // Esperar fin — GameState controla la pausa
         try {
-            while (neo.alive && !neo.escaped) {
-                Thread.sleep(100);
-                frame.update(matrix);
-            }
+            neo.join();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
 
-        // Parar agentes
-        for (Agent agent : agents) agent.active = false;
+        for (Agent agent : agents) {
+            agent.active = false;
+            agent.interrupt();
+        }
 
-        // Contar resultado
+        frame.update(matrix);
+
         if (neo.escaped) {
             neoWins++;
             System.out.println("✅ NEO ESCAPED!");
@@ -104,11 +111,8 @@ public class Simulation {
             System.out.println("❌ NEO WAS CAUGHT!");
         }
 
-        String result = neo.escaped
-                ? "✅ Neo escaped!"
-                : "❌ Neo was caught!";
+        String result = neo.escaped ? "✅ Neo escaped!" : "❌ Neo was caught!";
 
-        // Diálogo resultado
         final int[] choice = {0};
         try {
             SwingUtilities.invokeAndWait(() ->
@@ -118,8 +122,7 @@ public class Simulation {
                                     + " of " + totalSimulations,
                             "Simulation ended",
                             JOptionPane.DEFAULT_OPTION,
-                            neo.escaped
-                                    ? JOptionPane.INFORMATION_MESSAGE
+                            neo.escaped ? JOptionPane.INFORMATION_MESSAGE
                                     : JOptionPane.WARNING_MESSAGE,
                             null,
                             new String[]{"Next Simulation", "Quit to Menu", "Exit"},
@@ -141,25 +144,29 @@ public class Simulation {
         run(totalSimulations, currentSimulation + 1);
     }
 
+    private EntityFactory.Difficulty getDifficulty() {
+        if (agentSpeed >= 550) return EntityFactory.Difficulty.EASY;
+        if (agentSpeed <= 350) return EntityFactory.Difficulty.HARD;
+        return EntityFactory.Difficulty.MEDIUM;
+    }
+
     private void showSummary() {
         String overall;
-        if (neoWins > neoLosses)        overall = "🕶️ Neo wins overall!";
-        else if (neoLosses > neoWins)   overall = "🕵️ Agents win overall!";
-        else                             overall = "🤝 It's a tie!";
+        if (neoWins > neoLosses)       overall = "🕶️ Neo wins overall!";
+        else if (neoLosses > neoWins)  overall = "🕵️ Agents win overall!";
+        else                            overall = "🤝 It's a tie!";
 
         String summary =
                 "🎮 ALL SIMULATIONS COMPLETED!\n\n" +
-                        "✅ Neo escaped:    " + neoWins    + " time(s)\n" +
-                        "❌ Neo was caught: " + neoLosses  + " time(s)\n\n" +
+                        "✅ Neo escaped:    " + neoWins   + " time(s)\n" +
+                        "❌ Neo was caught: " + neoLosses + " time(s)\n\n" +
                         overall;
 
         final int[] choice = {0};
         try {
             SwingUtilities.invokeAndWait(() ->
                     choice[0] = JOptionPane.showOptionDialog(
-                            frame,
-                            summary,
-                            "Game Summary",
+                            frame, summary, "Game Summary",
                             JOptionPane.DEFAULT_OPTION,
                             JOptionPane.INFORMATION_MESSAGE,
                             null,
@@ -172,12 +179,8 @@ public class Simulation {
         }
 
         if (frame != null) frame.dispose();
-
-        if (choice[0] == 0) {
-            SwingUtilities.invokeLater(MenuFrame::new);
-        } else {
-            System.exit(0);
-        }
+        if (choice[0] == 0) SwingUtilities.invokeLater(MenuFrame::new);
+        else System.exit(0);
     }
 
     public void pauseSimulation() {
