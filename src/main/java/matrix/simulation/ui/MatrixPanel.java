@@ -10,7 +10,6 @@ public class MatrixPanel extends JPanel {
 
     private Matrix matrix;
     private int CELL_SIZE = 60;
-    private static final int PANEL_SIZE = 500;
 
     public MatrixPanel(Matrix matrix) {
         this.matrix = matrix;

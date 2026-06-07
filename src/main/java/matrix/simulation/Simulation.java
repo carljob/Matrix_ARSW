@@ -71,7 +71,7 @@ public class Simulation {
             }
 
             if (frame == null) {
-                frame = new SimulationFrame(matrix, this);
+                frame = new SimulationFrame(matrix);
             } else {
                 frame.update(matrix);
                 frame.setPaused(false);

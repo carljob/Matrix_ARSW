@@ -28,20 +28,4 @@ public class Matrix {
 
     public int getRows() { return rows; }
     public int getCols() { return cols; }
-
-    public synchronized void print() {
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                switch (grid[i][j]) {
-                    case NEO       -> System.out.print(" N ");
-                    case AGENT     -> System.out.print(" A ");
-                    case TELEPHONE -> System.out.print(" T ");
-                    case WALL      -> System.out.print(" # ");
-                    case EMPTY     -> System.out.print(" . ");
-                }
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
 }

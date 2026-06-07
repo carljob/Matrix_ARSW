@@ -25,6 +25,4 @@ public class GameState {
             }
         }
     }
-
-    public static boolean isPaused() { return paused; }
 }

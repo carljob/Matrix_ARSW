@@ -1,7 +1,6 @@
 package matrix.simulation.ui;
 
 import matrix.simulation.GameState;
-import matrix.simulation.Simulation;
 import matrix.simulation.model.Matrix;
 
 import javax.swing.*;
@@ -13,10 +12,8 @@ public class SimulationFrame extends JFrame {
     private JButton pauseButton;
     private JLabel statusLabel;
     private boolean paused = false;
-    private Simulation simulation;
 
-    public SimulationFrame(Matrix matrix, Simulation simulation) {
-        this.simulation = simulation;
+    public SimulationFrame(Matrix matrix) {
         setTitle("Matrix Neo Simulation");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
@@ -95,7 +92,6 @@ public class SimulationFrame extends JFrame {
         matrixPanel.updateMatrix(matrix);
     }
 
-    public boolean isPaused() { return paused; }
 
     public void setPaused(boolean paused) {
         this.paused = paused;

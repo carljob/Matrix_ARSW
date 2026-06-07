@@ -5,8 +5,7 @@ public class SimulationEvent {
     public enum Type {
         NEO_MOVED,
         NEO_ESCAPED,
-        NEO_CAUGHT,
-        SIMULATION_ENDED
+        NEO_CAUGHT
     }
 
     private final Type type;
@@ -19,9 +18,6 @@ public class SimulationEvent {
         this.col = col;
     }
 
-    public Type getType() { return type; }
-    public int getRow()   { return row; }
-    public int getCol()   { return col; }
 
     @Override
     public String toString() {
